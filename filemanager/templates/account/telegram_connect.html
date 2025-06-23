@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-6 offset-md-3">
+            <div class="card">
+                <div class="card-header">
+                    <h3>Привязка Telegram аккаунта</h3>
+                </div>
+                <div class="card-body">
+                    {% if not user.telegram_chat_id %}
+                        <ol>
+                            <li>Добавьте бота <a href="https://t.me/{{ TELEGRAM_BOT_USERNAME }}" target="_blank">@{{ TELEGRAM_BOT_USERNAME }}</a></li>
+                            <li>Отправьте команду:
+                                <div class="alert alert-info mt-2 mb-2">
+                                    <code>/start {{ user.username }}</code>
+                                </div>
+                            </li>
+                            <li>Введите полученный код ниже:</li>
+                        </ol>
+                        
+                        <form method="post">
+                            {% csrf_token %}
+                            <div class="form-group">
+                                <label for="code">Код подтверждения</label>
+                                <input type="text" class="form-control" id="code" name="code" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary mt-3">Привязать аккаунт</button>
+                        </form>
+                    {% else %}
+                        <div class="alert alert-success">
+                            Ваш Telegram аккаунт успешно привязан!
+                        </div>
+                        <form method="post" action="{% url 'unlink_telegram' %}">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-danger">Отвязать аккаунт</button>
+                        </form>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

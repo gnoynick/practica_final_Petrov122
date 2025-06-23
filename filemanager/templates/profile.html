@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+        <div class="profile-card shadow-sm p-4 mb-5 bg-white rounded">
+            <!-- Заголовок с аватаркой -->
+            <div class="text-center mb-4">
+                <div class="avatar-circle mb-3">
+                    <i class="bi bi-person-fill display-4 text-white"></i>
+                </div>
+                <h2 class="mb-0">{{ user.username }}</h2>
+                <p class="text-muted">{{ user.email }}</p>
+            </div>
+
+            <!-- Карточка информации -->
+            <div class="user-info-card p-4 mb-4 rounded">
+                <div class="row">
+                    <!-- Блок статистики -->
+                    <div class="col-md-6 mb-3 mb-md-0">
+                        <div class="stat-card p-3 text-center rounded">
+                            <div class="stat-icon mb-2">
+                                <i class="bi bi-folder2-open display-5 text-primary"></i>
+                            </div>
+                            <h5 class="text-muted mb-1">Файлов</h5>
+                            <p class="h3">{{ file_count }}</p>
+                        </div>
+                    </div>
+
+                    <!-- Блок активности -->
+                    <div class="col-md-6">
+                        <div class="stat-card p-3 text-center rounded">
+                            <div class="stat-icon mb-2">
+                                <i class="bi bi-clock-history display-5 text-info"></i>
+                            </div>
+                            <h5 class="text-muted mb-1">Последний вход</h5>
+                            <p class="h4">{{ user.last_login|date:"d.m.Y H:i" }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Действия -->
+            <div class="d-flex flex-column flex-md-row justify-content-between gap-3">
+                <a href="{% url 'file_list' %}" class="btn btn-primary btn-lg flex-grow-1">
+                    <i class="bi bi-folder2 me-2"></i> Мои файлы
+                </a>
+                <a href="{% url 'account_logout' %}" class="btn btn-outline-danger btn-lg flex-grow-1">
+                    <i class="bi bi-box-arrow-right me-2"></i> Выйти
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .profile-card {
+        background: #fff;
+        border: none;
+    }
+
+    .avatar-circle {
+        width: 100px;
+        height: 100px;
+        background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto;
+    }
+
+    .user-info-card {
+        background: #f8f9fa;
+        border: 1px solid rgba(0,0,0,0.05);
+    }
+
+    .stat-card {
+        background: #fff;
+        transition: all 0.3s ease;
+        height: 100%;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+
+    .stat-icon {
+        color: #2575fc;
+    }
+
+    @media (max-width: 768px) {
+        .avatar-circle {
+            width: 80px;
+            height: 80px;
+        }
+    }
+</style>
+{% endblock %}

@@ -1,0 +1,163 @@
+{% extends "base.html" %}
+
+{% block title %}Файл: {{ file.filename }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0">{{ file.filename }}</h4>
+                    <span class="badge bg-{% if file.processed %}success{% elif file.processing_status == 'failed' %}danger{% else %}warning{% endif %}">
+                        {% if file.processed %}
+                        Обработан
+                        {% elif file.processing_status == 'failed' %}
+                        Ошибка обработки
+                        {% else %}
+                        В обработке
+                        {% endif %}
+                    </span>
+                </div>
+                
+                <div class="card-body">
+                    <div class="mb-4">
+                        <h5>Информация о файле</h5>
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item">
+                                <strong>Тип:</strong> {{ file.extension|upper }}
+                            </li>
+                            <li class="list-group-item">
+                                <strong>Размер:</strong> {{ file.file.size|filesizeformat }}
+                            </li>
+                            <li class="list-group-item">
+                                <strong>Загружен:</strong> {{ file.uploaded_at|date:"d.m.Y H:i" }}
+                            </li>
+                            {% if file.description %}
+                            <li class="list-group-item">
+                                <strong>Описание:</strong> {{ file.description }}
+                            </li>
+                            {% endif %}
+                        </ul>
+                    </div>
+                    
+                    {% if analysis_results %}
+                    <div class="mb-4">
+                        <h5>Результаты анализа</h5>
+                        
+                        {% for result in analysis_results %}
+                        <div class="card mb-3">
+                            <div class="card-header">
+                                {{ result.get_result_type_display }}
+                            </div>
+                            <div class="card-body">
+                                {% if result.result_type == 'ocr' %}
+                                <h6>Распознанный текст:</h6>
+                                <div class="bg-light p-3 mb-3" style="max-height: 200px; overflow-y: auto;">
+                                    {{ result.data.text|linebreaks }}
+                                </div>
+                                
+                                <h6>Детали:</h6>
+                                <ul>
+                                    <li><strong>Язык:</strong> {{ result.data.language }}</li>
+                                    <li><strong>Тональность:</strong> {{ result.data.sentiment }}</li>
+                                </ul>
+                                
+                                {% elif result.result_type == 'ner' %}
+                                <h6>Извлеченные сущности:</h6>
+                                <div class="mb-3">
+                                    {% for entity_type, entities in result.data.entities.items %}
+                                    <div class="mb-2">
+                                        <strong>{{ entity_type }}:</strong>
+                                        {% for entity in entities %}
+                                        <span class="badge bg-secondary me-1">{{ entity }}</span>
+                                        {% endfor %}
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                                
+                                <h6>Ключевые слова:</h6>
+                                <div class="mb-3">
+                                    {% for keyword in result.data.keywords %}
+                                    <span class="badge bg-info me-1">{{ keyword }}</span>
+                                    {% endfor %}
+                                </div>
+                                
+                                <h6>Тональность:</h6>
+                                <div class="mb-3">
+                                    <span class="badge bg-{% if result.data.sentiment == 'positive' %}success{% elif result.data.sentiment == 'negative' %}danger{% else %}warning{% endif %}">
+                                        {{ result.data.sentiment }}
+                                    </span>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% elif file.processing_status == 'processing' %}
+                    <div class="alert alert-warning">
+                        <div class="d-flex align-items-center">
+                            <div class="spinner-border spinner-border-sm me-2" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <div>
+                                Файл в процессе обработки. Обновите страницу через некоторое время.
+                            </div>
+                        </div>
+                    </div>
+                    {% elif file.processing_status == 'failed' %}
+                    <div class="alert alert-danger">
+                        Произошла ошибка при обработке файла. Попробуйте загрузить его снова.
+                    </div>
+                    {% else %}
+                    <div class="alert alert-info">
+                        Файл еще не обработан. Обработка обычно занимает несколько минут.
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <div class="card-footer d-flex justify-content-between">
+                    <a href="{% url 'file_list' %}" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left"></i> Назад
+                    </a>
+                    <div>
+                        <a href="{% url 'download_file' file.id %}" class="btn btn-primary me-2">
+                            <i class="bi bi-download"></i> Скачать
+                        </a>
+                        <a href="{% url 'replace_file' file.id %}" class="btn btn-warning me-2">
+                            <i class="bi bi-arrow-repeat"></i> Заменить
+                        </a>
+                        <form method="post" action="{% url 'delete_file' file.id %}" class="d-inline">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-danger" 
+                                    onclick="return confirm('Удалить этот файл?')">
+                                <i class="bi bi-trash"></i> Удалить
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if not file.processed and file.processing_status != 'failed' %}
+<script>
+// Poll for processing status
+function checkProcessingStatus() {
+    fetch("{% url 'check_processing_status' file.id %}")
+        .then(response => response.json())
+        .then(data => {
+            if (data.processed || data.status === 'failed') {
+                window.location.reload();
+            } else {
+                setTimeout(checkProcessingStatus, 5000);
+            }
+        });
+}
+
+// Start polling after 5 seconds
+setTimeout(checkProcessingStatus, 5000);
+</script>
+{% endif %}
+{% endblock %}

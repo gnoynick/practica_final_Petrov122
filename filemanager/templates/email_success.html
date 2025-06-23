@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-6 mx-auto">
+        <div class="file-card text-center">
+            <h1 class="mb-4 text-success">Отчёт успешно отправлен!</h1>
+            <div class="spinner-border text-success mb-3" role="status">
+                <span class="visually-hidden">Загрузка...</span>
+            </div>
+            <p>Вы будете перенаправлены обратно к списку файлов через 3 секунды...</p>
+        </div>
+    </div>
+</div>
+<script>
+    setTimeout(function() {
+        window.location.href = "{% url 'file_list' %}";
+    }, 3000);
+</script>
+{% endblock %}

@@ -1,0 +1,210 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-xxl">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <!-- Шапка с кнопками и статистикой -->
+            <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
+                <div>
+                    <h1 class="mb-1">Мои файлы</h1>
+                    <small class="text-muted">
+                        Всего: {{ files|length }} |
+                        Общий размер: {{ total_size|filesizeformat }}
+                    </small>
+                </div>
+                <div class="d-flex gap-2">
+                    <a href="{% url 'upload_file' %}" class="btn btn-primary">
+                        <i class="bi bi-upload me-1"></i> Загрузить
+                    </a>
+                    <a href="{% url 'profile' %}" class="btn btn-outline-secondary">
+                        <i class="bi bi-person"></i> Профиль
+                    </a>
+                </div>
+            </div>
+
+            <!-- Список файлов -->
+            <div class="file-list card border-0 shadow-sm">
+                <div class="card-body p-0">
+                    {% if files %}
+                    <div class="list-group list-group-flush">
+                        {% for file in files %}
+                        <div class="list-group-item p-3">
+                            <div class="row align-items-center g-3">
+                                <!-- Левая часть с информацией о файле -->
+                                <div class="col-md-7">
+                                    <div class="d-flex align-items-center gap-3">
+                                        <!-- Иконка файла -->
+                                        <div class="file-icon">
+                                            {% if file.file.url|lower|slice:"-4:" == ".pdf" %}
+                                            <i class="bi bi-file-earmark-pdf fs-3 text-danger"></i>
+                                            {% elif file.file.url|lower|slice:"-4:" in ".jpg,.jpeg,.png,.gif" %}
+                                            <i class="bi bi-file-image fs-3 text-primary"></i>
+                                            {% else %}
+                                            <i class="bi bi-file-earmark fs-3 text-secondary"></i>
+                                            {% endif %}
+                                        </div>
+                                        <!-- Название и метаданные -->
+                                        <div class="flex-grow-1">
+                                            <h5 class="mb-1">
+                                                <a href="{{ file.file.url }}"
+                                                   class="text-decoration-none"
+                                                   {% if file.file.url|lower|slice:"-4:" in ".jpg,.jpeg,.png,.gif,.pdf" %}target="_blank"{% endif %}>
+                                                    {{ file.filename }}
+                                                </a>
+                                            </h5>
+                                            {% if file.description %}
+                                            <p class="text-muted mb-1 small">{{ file.description }}</p>
+                                            {% endif %}
+                                            <div class="d-flex gap-3 small text-muted">
+                                                <span>
+                                                    <i class="bi bi-calendar me-1"></i>
+                                                    {{ file.uploaded_at|date:"d.m.Y H:i" }}
+                                                </span>
+                                                <span>
+                                                    <i class="bi bi-hdd me-1"></i>
+                                                    {{ file.file.size|filesizeformat }}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Правая часть с кнопками действий -->
+                                <div class="col-md-5">
+                                    <div class="d-flex justify-content-end gap-2 flex-wrap">
+                                        <!-- Кнопка анализа (ОБНОВЛЕННЫЙ БЛОК) -->
+                                        {% with ext=file.file.name|lower|slice:"-4:" %}
+                                            {% if ext in ".docx" or ext in ".pptx" or ext in ".pdf" or ext == ".jpg" or ext == ".png" or ext == "jpeg" %}
+                                                <form action="{% url 'process_file' file.id %}" method="post" class="d-inline">
+                                                    {% csrf_token %}
+                                                    <button type="submit"
+                                                            class="btn btn-sm btn-outline-info action-btn"
+                                                            title="Анализировать файл">
+                                                        <i class="bi bi-robot"></i>
+                                                        <span class="d-none d-sm-inline">Анализ</span>
+                                                    </button>
+                                                </form>
+                                            {% else %}
+                                                <button class="btn btn-sm btn-outline-secondary action-btn disabled"
+                                                        title="Формат {{ ext }} не поддерживается для анализа">
+                                                    <i class="bi bi-robot"></i>
+                                                    <span class="d-none d-sm-inline">Анализ</span>
+                                                </button>
+                                            {% endif %}
+                                        {% endwith %}
+
+                                        <!-- Кнопка замены -->
+                                        <a href="{% url 'replace_file' file.id %}"
+                                           class="btn btn-sm btn-outline-primary action-btn"
+                                           title="Заменить файл">
+                                            <i class="bi bi-arrow-repeat"></i>
+                                            <span class="d-none d-sm-inline">Заменить</span>
+                                        </a>
+
+                                        <!-- Кнопка отправки -->
+                                        <a href="{% url 'send_report' %}?file_url={{ file.file.url|urlencode }}"
+                                           class="btn btn-sm btn-outline-success action-btn"
+                                           title="Отправить отчет">
+                                            <i class="bi bi-send"></i>
+                                            <span class="d-none d-sm-inline">Отчет</span>
+                                        </a>
+
+                                        <!-- Кнопка удаления -->
+                                        <form action="{% url 'delete_file' file.id %}" method="post" class="d-inline">
+                                            {% csrf_token %}
+                                            <button type="submit"
+                                                    class="btn btn-sm btn-outline-danger action-btn"
+                                                    title="Удалить файл"
+                                                    onclick="return confirm('Вы уверены, что хотите удалить этот файл?')">
+                                                <i class="bi bi-trash"></i>
+                                                <span class="d-none d-sm-inline">Удалить</span>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <div class="py-4">
+                            <i class="bi bi-folder-x fs-1 text-muted"></i>
+                            <h4 class="mt-3 text-muted">Нет загруженных файлов</h4>
+                            <p class="mb-3">Начните с загрузки вашего первого файла</p>
+                            <a href="{% url 'upload_file' %}" class="btn btn-primary">
+                                <i class="bi bi-upload me-1"></i> Загрузить файл
+                            </a>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .file-list {
+        max-height: 65vh;
+        overflow-y: auto;
+        border-radius: 0.5rem;
+    }
+
+    .file-icon {
+        flex-shrink: 0;
+        width: 40px;
+        text-align: center;
+    }
+
+    .list-group-item {
+        transition: background-color 0.15s ease;
+        border-left: 0;
+        border-right: 0;
+    }
+
+    .list-group-item:first-child {
+        border-top: 0;
+    }
+
+    .list-group-item:hover {
+        background-color: #f8f9fa;
+    }
+
+    .action-btn {
+        min-width: 40px;
+        padding: 0.25rem 0.5rem;
+    }
+
+    /* Адаптивные правки */
+    @media (max-width: 768px) {
+        .file-list {
+            max-height: none;
+        }
+        .col-md-5 .d-flex {
+            justify-content: start !important;
+        }
+        .action-btn {
+            margin-bottom: 0.25rem;
+        }
+    }
+
+    /* Кастомный скроллбар */
+    .file-list::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+    }
+    .file-list::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 0 0.5rem 0.5rem 0;
+    }
+    .file-list::-webkit-scrollbar-thumb {
+        background: #adb5bd;
+        border-radius: 3px;
+    }
+    .file-list::-webkit-scrollbar-thumb:hover {
+        background: #6c757d;
+    }
+</style>
+{% endblock %}

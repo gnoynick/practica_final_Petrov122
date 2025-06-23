@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-6 mx-auto">
+        <div class="file-card">
+            <h1 class="mb-4">Заменить файл</h1>
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label for="id_file" class="form-label">Новый файл</label>
+                    {{ form.file }}
+                </div>
+                <div class="mb-3">
+                    <label for="id_description" class="form-label">Описание</label>
+                    {{ form.description }}
+                </div>
+                <button type="submit" class="btn btn-primary">Заменить</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

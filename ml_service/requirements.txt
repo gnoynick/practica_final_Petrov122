@@ -1,0 +1,26 @@
+# Основные зависимости Django
+Django==5.0.6
+djangorestframework==3.14.0
+django-allauth==0.58.2
+django-debug-toolbar==4.2.0
+
+# Зависимости для ML-сервиса
+fastapi==0.109.1
+uvicorn==0.27.0
+python-multipart==0.0.6
+requests==2.31.0
+
+# Обработка изображений и текста
+pytesseract==0.3.10
+opencv-python-headless==4.9.0.80
+Pillow==10.1.0
+spacy==3.7.4
+https://github.com/explosion/spacy-models/releases/download/ru_core_news_sm-3.7.0/ru_core_news_sm-3.7.0.tar.gz#egg=ru_core_news_sm
+
+# Работа с очередями (Celery)
+celery==5.3.6
+redis==5.0.1
+
+# Дополнительные утилиты
+python-dotenv==1.0.0
+loguru==0.7.2

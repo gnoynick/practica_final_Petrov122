@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-6 mx-auto">
+        <div class="file-card">
+            <h1 class="mb-4">Отправить отчёт</h1>
+            {% if file_url %}
+            <div class="alert alert-info mb-3">
+                Отчёт будет включать ссылку на файл: <a href="{{ file_url }}" target="_blank">{{ file_url|truncatechars:40 }}</a>
+            </div>
+            {% endif %}
+            <form method="post">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label for="id_email" class="form-label">Email получателя</label>
+                    {{ form.email }}
+                </div>
+                <div class="mb-3">
+                    <label for="id_subject" class="form-label">Тема письма</label>
+                    {{ form.subject }}
+                </div>
+                <div class="mb-3">
+                    <label for="id_message" class="form-label">Сообщение</label>
+                    {{ form.message }}
+                </div>
+                <button type="submit" class="btn btn-success">Отправить</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
